@@ -1,11 +1,7 @@
-﻿using Microsoft.Crm.Sdk.Messages;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Client;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Metadata;
-using Microsoft.Xrm.Sdk.Query;
+﻿using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
@@ -29,8 +25,8 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        protected OrganizationServiceProxy _serviceProxy;
-        protected ClientCredentials _clientCreds;
+        CrmService crmSvc = null;
+        List<EntityMeta> entitiesMetaList = new List<EntityMeta>();
 
         public MainWindow()
         {
@@ -45,10 +41,12 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp
                 bool? result = loginWnd.ShowDialog();
                 if (result.HasValue && result.Value)
                 {
-                    ConnectToCrm();
-                    WhoAmIResponse whoAmI = _serviceProxy.Execute(new WhoAmIRequest()) as WhoAmIResponse;
+                    crmSvc = new CrmService(Properties.Settings.Default["CrmDomain"].ToString(), 
+                        Properties.Settings.Default["CrmUsername"].ToString(), 
+                        Properties.Settings.Default["CrmPassword"].ToString(), 
+                        Properties.Settings.Default["CrmUrl"].ToString());
 
-                    txtStatus.Text = "Conneted to: " + _serviceProxy.ServiceManagement.CurrentServiceEndpoint.Address.Uri.AbsolutePath + " as " + GetUserLogin(whoAmI.UserId);
+                    txtStatus.Text = "Conneted to: " + crmSvc.ConnectedTo + " as " + crmSvc.ConnectedAs;
                 }
             }
             catch(Exception ex)
@@ -57,80 +55,89 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp
             }
         }
 
-        private void ConnectToCrm()
-        {
-            _clientCreds = new ClientCredentials();
-            _clientCreds.Windows.ClientCredential.UserName = Properties.Settings.Default["CrmUsername"].ToString();
-            _clientCreds.Windows.ClientCredential.Password = Properties.Settings.Default["CrmPassword"].ToString();
-            _clientCreds.Windows.ClientCredential.Domain = Properties.Settings.Default["CrmDomain"].ToString();
 
-            string orgServiceUrl = Properties.Settings.Default["CrmUrl"].ToString().TrimEnd('/') + "/XRMServices/2011/Organization.svc";
-            _serviceProxy = new OrganizationServiceProxy(new Uri(orgServiceUrl), null, _clientCreds, null);
-            _serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.Behaviors.Add(new ProxyTypesBehavior());
-            if (_serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.Binding is CustomBinding)
+
+
+        private void FillEntitiesMetaList()
+        {
+            if(crmSvc == null || !crmSvc.IsConnected)
             {
-                CustomBinding cb = (CustomBinding)_serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.Binding;
-                cb.SendTimeout = new TimeSpan(0, 10, 0);
-                cb.ReceiveTimeout = new TimeSpan(0, 10, 0);
-                foreach (BindingElement be in cb.Elements)
-                {
-                    if (be is HttpTransportBindingElement)
-                    {
-                        ((HttpTransportBindingElement)be).UnsafeConnectionNtlmAuthentication = true;
-                    }
-                }
+                MessageBox.Show("Not connected to CRM.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
-        }
 
-        private string GetUserLogin(Guid userId)
-        {
-            Entity user = _serviceProxy.Retrieve("systemuser", userId, new ColumnSet("domainname"));
-            return "\\\\" + user.GetAttributeValue<string>("domainname");
-        }
+            var entities = crmSvc.GetAllEntitiesMeta();
+            entitiesMetaList.Clear();
 
-        private List<EntityMeta> GetAllEntities()
-        {
-            RetrieveAllEntitiesRequest request = new RetrieveAllEntitiesRequest()
-            {
-                EntityFilters = EntityFilters.Entity,
-                RetrieveAsIfPublished = true
-            };
-
-            // Retrieve the MetaData.
-            RetrieveAllEntitiesResponse response = (RetrieveAllEntitiesResponse)_serviceProxy.Execute(request);
-
-            List<EntityMeta> entitiesList = new List<EntityMeta>();
-            foreach (EntityMetadata currentEntity in response.EntityMetadata)
+            foreach (EntityMetadata entity in entities)
             {
                 EntityMeta entityMeta = new EntityMeta();
-                entityMeta.MetaId = currentEntity.MetadataId.HasValue ? currentEntity.MetadataId.Value : Guid.Empty;
-                entityMeta.SchemaName = currentEntity.SchemaName;
-                entityMeta.LogicalName = currentEntity.LogicalName;
-                entityMeta.ObjectTypeCode = currentEntity.ObjectTypeCode.HasValue ? currentEntity.ObjectTypeCode.Value : 0;
-                entityMeta.DisplayName = (currentEntity.DisplayName.UserLocalizedLabel != null) ? currentEntity.DisplayName.UserLocalizedLabel.Label : currentEntity.SchemaName;
-                entityMeta.Description = (currentEntity.Description.UserLocalizedLabel != null) ? currentEntity.Description.UserLocalizedLabel.Label : "";
-                entityMeta.IsCustomEntity = currentEntity.IsCustomEntity.Value;
-                entityMeta.IsManaged = currentEntity.IsManaged.Value;
-                entityMeta.IsValidForAdvancedFind = currentEntity.IsValidForAdvancedFind.Value;
-                entityMeta.IsValidForQueue = currentEntity.IsValidForQueue.Value;
-                entityMeta.IsVisibleInMobile = currentEntity.IsVisibleInMobile.Value;
-                entitiesList.Add(entityMeta);
+                entityMeta.MetaId = entity.MetadataId.HasValue ? entity.MetadataId.Value : Guid.Empty;
+                entityMeta.SchemaName = entity.SchemaName;
+                entityMeta.LogicalName = entity.LogicalName;
+                entityMeta.DisplayName = (entity.DisplayName.UserLocalizedLabel != null) ? entity.DisplayName.UserLocalizedLabel.Label : entity.SchemaName;
+                entityMeta.ObjectTypeCode = entity.ObjectTypeCode.HasValue ? entity.ObjectTypeCode.Value : 0;
+                entityMeta.Description = (entity.Description.UserLocalizedLabel != null) ? entity.Description.UserLocalizedLabel.Label : "";
+                entityMeta.IsCustomEntity = entity.IsCustomEntity.Value;
+                entityMeta.IsManaged = entity.IsManaged.Value;
+                entityMeta.IsValidForAdvancedFind = entity.IsValidForAdvancedFind.Value;
+                entityMeta.IsValidForQueue = entity.IsValidForQueue.Value;
+                entityMeta.IsVisibleInMobile = entity.IsVisibleInMobile.Value;
+                entitiesMetaList.Add(entityMeta);
             }
-            return entitiesList;
         }
 
         private void btnGetEntities_Click(object sender, RoutedEventArgs e)
         {
-            List<EntityMeta> entities = GetAllEntities();
-            grdEntities.ItemsSource = entities;
+            Window waitWindow = new Window { Height = 100, Width = 200, WindowStartupLocation = WindowStartupLocation.CenterScreen, WindowStyle = WindowStyle.None };
+            waitWindow.Content = new TextBlock { Text = "Please Wait", FontSize = 30, FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += delegate
+            {
+                Dispatcher.BeginInvoke(new Action(delegate { waitWindow.ShowDialog(); }));
+
+                DataLoader dataLoader = new DataLoader(); // I made this class up
+                dataLoader.DataLoaded += delegate
+                {
+                    Dispatcher.BeginInvoke(new Action(delegate () { waitWindow.Close(); }));
+                };
+
+                dataLoader.LoadData();
+            };
+
+            worker.RunWorkerAsync();
+            FillEntitiesMetaList();
+            grdEntities.ItemsSource = entitiesMetaList;
         }
 
         private void grdEntities_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
-            if (e.PropertyName != "SchemaName" && e.PropertyName != "LogicalName" && e.PropertyName != "ObjectTypeCode" && e.PropertyName != "DisplayName" && e.PropertyName != "Description")
+            if (e.PropertyName != "IsSelected" && e.PropertyName != "LogicalName" && e.PropertyName != "ObjectTypeCode" && e.PropertyName != "DisplayName" && e.PropertyName != "Description")
             {
                 e.Cancel = true;
             }
+        }
+
+        private void applyFilter(bool isCustom)
+        {
+            ListCollectionView collectionView = new ListCollectionView(entitiesMetaList);
+            collectionView.Filter = (e) =>
+            {
+                EntityMeta em = e as EntityMeta;
+                return (em.IsCustomEntity == isCustom);
+            };
+            grdEntities.ItemsSource = collectionView;
+        }
+
+        private void cboxOnlyCustom_Checked(object sender, RoutedEventArgs e)
+        {
+            applyFilter(true);
+        }
+
+        private void cboxOnlyCustom_Unchecked(object sender, RoutedEventArgs e)
+        {
+            applyFilter(false);
         }
     }
 }

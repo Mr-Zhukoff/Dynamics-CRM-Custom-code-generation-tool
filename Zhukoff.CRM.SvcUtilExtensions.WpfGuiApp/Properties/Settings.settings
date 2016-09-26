@@ -3,16 +3,16 @@
   <Profiles />
   <Settings>
     <Setting Name="CrmDomain" Type="System.String" Scope="User">
-      <Value Profile="(Default)">ZHUKOFF</Value>
+      <Value Profile="(Default)">GENIE</Value>
     </Setting>
     <Setting Name="CrmUsername" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Grigory</Value>
+      <Value Profile="(Default)">GZhukov</Value>
     </Setting>
     <Setting Name="CrmPassword" Type="System.String" Scope="User">
-      <Value Profile="(Default)">ieX2SC2Gkz</Value>
+      <Value Profile="(Default)">qwerty!1Q</Value>
     </Setting>
     <Setting Name="CrmUrl" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://crm2016server/DevOrg/</Value>
+      <Value Profile="(Default)">http://crm2016/devorg</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -66,11 +66,13 @@
   <ItemGroup>
     <Compile Include="BasicFilteringService.cs" />
     <Compile Include="CodeCustomizationService.cs" />
+    <Compile Include="CrmService.cs" />
     <Compile Include="FilteringService.cs" />
     <Compile Include="NamingService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="CrmSvcUtil\CrmSvcUtil.exe.config" />
     <None Include="packages.config" />
     <None Include="Readme.docx" />

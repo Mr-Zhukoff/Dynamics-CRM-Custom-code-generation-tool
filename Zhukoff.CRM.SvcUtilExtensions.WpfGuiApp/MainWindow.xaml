@@ -4,29 +4,33 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp"
-        mc:Ignorable="d" Height="640" Width="480" MinHeight="640" MinWidth="480" WindowStartupLocation="CenterScreen" Title="CrmSvcUtil GUI">
+        mc:Ignorable="d" Height="600" Width="800" MinHeight="480" MinWidth="640" WindowStartupLocation="CenterScreen" Title="CrmSvcUtil GUI">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock x:Name="txtHeader"  Grid.Row="0" Text="CrmSvcUtil GUI" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        
-        <DataGrid x:Name="grdEntities" Grid.Row="1" Margin="10" AutoGeneratingColumn="grdEntities_AutoGeneratingColumn"/>
-        
-        <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <Button x:Name="btnConnectToCrm" Content="Connect" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="75" Click="btnConnectToCrm_Click" Margin="10"/>
-            <Button x:Name="btnGetEntities" Content="Refresh" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="btnGetEntities_Click" Margin="10"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="10">
+            <CheckBox x:Name="cboxOnlyCustom" Content="Show only custom entities" Checked="cboxOnlyCustom_Checked" Unchecked="cboxOnlyCustom_Unchecked"  />
+        </StackPanel>
+        <DataGrid x:Name="grdEntities" Grid.Row="2" Margin="10" AutoGeneratingColumn="grdEntities_AutoGeneratingColumn"/>
+        <ProgressBar x:Name="prgBar" Grid.Row="2" Height="30" Margin="50,0" IsIndeterminate="True" Visibility="Hidden"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="10">
+            <Button x:Name="btnConnectToCrm" Content="Connect" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="75" Click="btnConnectToCrm_Click" Margin="10,0"/>
+            <Button x:Name="btnGetEntities" Content="Refresh" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="btnGetEntities_Click" Margin="10,0"/>
         </StackPanel>
 
-        <StatusBar x:Name="statusBar" Grid.Row="3" Height="18" Margin="0" VerticalAlignment="Bottom">
+        <StatusBar x:Name="statusBar" Grid.Row="4" Height="18" Margin="0" VerticalAlignment="Bottom">
             <TextBlock x:Name="txtStatus" Text="status" FontSize="10"/>
         </StatusBar>
 
         <Popup>
 
         </Popup>
+
     </Grid>
 </Window>

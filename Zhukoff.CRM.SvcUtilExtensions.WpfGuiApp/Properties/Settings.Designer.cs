@@ -25,7 +25,7 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("ZHUKOFF")]
+        [global::System.Configuration.DefaultSettingValueAttribute("GENIE")]
         public string CrmDomain {
             get {
                 return ((string)(this["CrmDomain"]));
@@ -37,7 +37,7 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Grigory")]
+        [global::System.Configuration.DefaultSettingValueAttribute("GZhukov")]
         public string CrmUsername {
             get {
                 return ((string)(this["CrmUsername"]));
@@ -49,7 +49,7 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("ieX2SC2Gkz")]
+        [global::System.Configuration.DefaultSettingValueAttribute("qwerty!1Q")]
         public string CrmPassword {
             get {
                 return ((string)(this["CrmPassword"]));
@@ -61,7 +61,7 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://crm2016server/DevOrg/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://crm2016/devorg")]
         public string CrmUrl {
             get {
                 return ((string)(this["CrmUrl"]));
