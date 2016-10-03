@@ -44,7 +44,7 @@ namespace Zhukoff.CRM.SvcUtilExtensions
                 }
             }
             IsConnected = true;
-            ConnectedTo = _serviceProxy.ServiceManagement.CurrentServiceEndpoint.Address.Uri.AbsolutePath;
+            ConnectedTo = _serviceProxy.ServiceManagement.CurrentServiceEndpoint.Address.Uri.AbsoluteUri.Replace("XRMServices/2011/Organization.svc", "");
             WhoAmIResponse whoAmI = _serviceProxy.Execute(new WhoAmIRequest()) as WhoAmIResponse;
             ConnectedAs = GetUserLogin(whoAmI.UserId);
         }
