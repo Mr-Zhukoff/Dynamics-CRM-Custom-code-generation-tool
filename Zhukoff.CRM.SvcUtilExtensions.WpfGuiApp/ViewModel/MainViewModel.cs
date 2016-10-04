@@ -6,8 +6,10 @@ using GalaSoft.MvvmLight.Views;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
+using System.Windows.Data;
 
 namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
 {
@@ -25,16 +27,31 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        #region Properties
         public IDialogService dlgService;
         private INavigationService navService;
         private CrmService crmService;
 
         public ObservableCollection<EntityMetaObject> EntitiesMetaList { get; private set; }
-        #region Properties
-        public bool IsDataLoaded
+
+        private ICollectionView _entitiesMetaListView;
+        public ICollectionView EntitiesMetaListView
         {
-            get;
-            private set;
+            get { return _entitiesMetaListView; }
+            set
+            {
+                Set(() => EntitiesMetaListView, ref this._entitiesMetaListView, value);
+            }
+        }
+
+        private bool _isLoaded;
+        public bool IsLoaded
+        {
+            get { return _isLoaded; }
+            set
+            {
+                Set(() => IsLoaded, ref this._isLoaded, value);
+            }
         }
 
         private bool _isLoading;
@@ -53,7 +70,38 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
             get { return _connectedTo; }
             set
             {
+                this.IsLoaded = !String.IsNullOrEmpty(value);
                 Set(() => ConnectedTo, ref this._connectedTo, value);
+            }
+        }
+
+        private bool _isCustom;
+        public bool IsCustom
+        {
+            get { return _isCustom; }
+            set
+            {
+                Set(() => IsCustom, ref this._isCustom, value);
+            }
+        }
+
+        private bool _isValidForAdvancedFind;
+        public bool IsValidForAdvancedFind
+        {
+            get { return _isValidForAdvancedFind; }
+            set
+            {
+                Set(() => IsValidForAdvancedFind, ref this._isValidForAdvancedFind, value);
+            }
+        }
+
+        private int _count;
+        public int Count
+        {
+            get { return _count; }
+            set
+            {
+                Set(() => Count, ref this._count, value);
             }
         }
         #endregion
@@ -69,6 +117,12 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
             get;
             private set;
         }
+        public RelayCommand FilterEntitiesMetaListCommand
+        {
+            get;
+            private set;
+        }
+
         public RelayCommand<string> ShowErrorCommand
         {
             get;
@@ -96,6 +150,8 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
             //this.dlgService = new DialogService();
             //this.navService = new NavigationService();
 
+            this.IsLoaded = false;
+
             ShowErrorCommand = new RelayCommand<string>(ShowErrorMessage);
             ShowMessageCommand = new RelayCommand<string>(ShowMessage);
             NavigateToPageCommand = new RelayCommand<string>(page =>
@@ -105,8 +161,9 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
                     navService.NavigateTo(page);
                 }
             });
-            RefreshEntitiesMetaListCommand = new RelayCommand(FillEntitiesMetaList);
+            RefreshEntitiesMetaListCommand = new RelayCommand(FillEntitiesMetaList, CanFillEntitiesMetaList);
             ConnectToCrmCommand = new RelayCommand(ConnectToCrm);
+            FilterEntitiesMetaListCommand = new RelayCommand(FilterEntitiesMetaList);
         }
 
         private void ConnectToCrm()
@@ -156,6 +213,41 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
                 entityMeta.IsVisibleInMobile = entity.IsVisibleInMobile.Value;
                 EntitiesMetaList.Add(entityMeta);
             }
+            this.Count = EntitiesMetaList.Count;
+            EntitiesMetaListView = CollectionViewSource.GetDefaultView(EntitiesMetaList);
+            EntitiesMetaListView.Refresh();
+        }
+
+        private bool CanFillEntitiesMetaList()
+        {
+            return this.IsLoaded;
+        }
+
+        private void FilterEntitiesMetaList()
+        {
+            if (!EntitiesMetaListView.CanFilter)
+            {
+                return;
+            }
+            ListCollectionView collectionView = new ListCollectionView(EntitiesMetaList);
+            collectionView.Filter = (e) =>
+            {
+                EntityMetaObject em = e as EntityMetaObject;
+                bool filterCustom = true;
+                bool filterAdvancedFind = true;
+                if (this.IsCustom)
+                {
+                    filterCustom = (em.IsCustomEntity == true);
+                }
+                if (this.IsValidForAdvancedFind)
+                {
+                    filterAdvancedFind = (em.IsValidForAdvancedFind == true);
+                }
+                return (filterCustom || filterAdvancedFind);
+            };
+            this.Count = collectionView.Count;
+            EntitiesMetaListView = collectionView;
+            EntitiesMetaListView.Refresh();
         }
 
         private void NavigateToPage(string page)
@@ -181,7 +273,7 @@ namespace Zhukoff.CRM.SvcUtilExtensions.WpfGuiApp.ViewModel
 
         private void ShowMessage(string message)
         {
-           // dlgService.ShowMessage(message, resLdr.GetString("MessageWarningTitle"));
+            // dlgService.ShowMessage(message, resLdr.GetString("MessageWarningTitle"));
         }
 
         private async void HandleException(Exception ex)

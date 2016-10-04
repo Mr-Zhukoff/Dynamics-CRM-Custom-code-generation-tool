@@ -7,6 +7,7 @@
         mc:Ignorable="d" 
         DataContext="{Binding Main, Source={StaticResource Locator}}"
         Height="600" Width="800" MinHeight="480" MinWidth="640" WindowStartupLocation="CenterScreen" Title="CrmSvcUtil GUI">
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -17,10 +18,12 @@
         </Grid.RowDefinitions>
         <TextBlock x:Name="txtHeader"  Grid.Row="0" Text="CrmSvcUtil GUI" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="10">
-            <CheckBox x:Name="cboxOnlyCustom" Content="Show only custom entities" Checked="cboxOnlyCustom_Checked" Unchecked="cboxOnlyCustom_Unchecked" />
+            <CheckBox x:Name="cboxOnlyCustom" Content="Show only custom entities" IsChecked="{Binding IsCustom}" />
+            <CheckBox x:Name="cboxIsValidForAdvancedFind" Content="Show only valid for AdvancedFind" IsChecked="{Binding IsValidForAdvancedFind}" />
+            <Button Content="Filter" Command="{Binding FilterEntitiesMetaListCommand}" />
         </StackPanel>
 
-        <DataGrid x:Name="grdEntities" Grid.Row="2" Margin="10" AutoGenerateColumns="False" ItemsSource="{Binding EntitiesMetaList}">
+        <DataGrid x:Name="grdEntities" Grid.Row="2" Margin="10" AutoGenerateColumns="False" ItemsSource="{Binding EntitiesMetaListView}">
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Header="Selected" Binding="{Binding Path=IsSelected}"></DataGridCheckBoxColumn>
                 <DataGridTextColumn Header="Display Name" Binding="{Binding Path=DisplayName}"></DataGridTextColumn>
@@ -33,6 +36,7 @@
         <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="10">
             <Button x:Name="btnConnectToCrm" Content="Connect" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="75" Click="btnConnectToCrm_Click" Margin="10,0"/>
             <Button x:Name="btnGetEntities" Content="Refresh" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Command="{Binding RefreshEntitiesMetaListCommand}" Margin="10,0"/>
+            <TextBlock Text="{Binding Count}" />
         </StackPanel>
 
         <StatusBar x:Name="statusBar" Grid.Row="4" Height="18" Margin="0" VerticalAlignment="Bottom">
